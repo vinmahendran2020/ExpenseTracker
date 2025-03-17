@@ -20,21 +20,15 @@ export class TransactionsService {
     return transaction;
   }
 
-  async getBalance(): Promise<{ balance: number; income: number; expenses: number }> {
-    let income = 0;
+  async getBalance(): Promise<{ balance: number; expenses: number }> {
     let expenses = 0;
 
     for (const transaction of this.transactions) {
-      if (transaction.type === TransactionType.INCOME) {
-        income += Number(transaction.amount);
-      } else {
-        expenses += Number(transaction.amount);
-      }
+      expenses += Number(transaction.amount);
     }
 
     return {
-      balance: income - expenses,
-      income,
+      balance: -expenses,
       expenses,
     };
   }

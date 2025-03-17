@@ -13,7 +13,6 @@ export default function Home() {
 
   const { data: balance, isLoading: balanceLoading } = useQuery<{
     balance: number;
-    income: number;
     expenses: number;
   }>({
     queryKey: ['/api/balance'],
