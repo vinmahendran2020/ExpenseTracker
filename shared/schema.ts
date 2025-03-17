@@ -4,11 +4,12 @@ import { z } from "zod";
 
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
-  type: text("type", { enum: ["income", "expense"] }).notNull(),
+  type: text("type", { enum: ["expense"] }).notNull(),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   category: text("category").notNull(),
   description: text("description").notNull(),
   date: timestamp("date").notNull().defaultNow(),
+  attachment: text("attachment"),
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ 

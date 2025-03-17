@@ -1,18 +1,20 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Paperclip } from "lucide-react";
+import { ChevronLeft, Paperclip, X } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function NewExpense() {
   const [amount, setAmount] = useState("0");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [_, setLocation] = useLocation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const mutation = useMutation({
     mutationFn: async (data: {
@@ -20,7 +22,16 @@ export default function NewExpense() {
       amount: string;
       category: string;
       description: string;
+      attachment?: string;
     }) => {
+      if (attachment) {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(attachment);
+        });
+        data.attachment = base64;
+      }
       await apiRequest("POST", "/api/transactions", data);
     },
     onSuccess: () => {
@@ -41,6 +52,20 @@ export default function NewExpense() {
       return;
     }
     setAmount(prev => prev === "0" ? key : prev + key);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAttachment(file);
+    }
+  };
+
+  const handleRemoveAttachment = () => {
+    setAttachment(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = () => {
@@ -98,9 +123,33 @@ export default function NewExpense() {
               />
             </div>
 
-            <div className="flex items-center text-gray-500">
-              <Paperclip className="h-4 w-4 mr-2" />
-              <span className="text-sm">Add attachment</span>
+            <div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept="image/*,.pdf"
+              />
+              {attachment ? (
+                <div className="flex items-center justify-between text-sm text-gray-600 border rounded p-2">
+                  <div className="flex items-center">
+                    <Paperclip className="h-4 w-4 mr-2" />
+                    <span>{attachment.name}</span>
+                  </div>
+                  <button onClick={handleRemoveAttachment}>
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  className="flex items-center text-gray-500"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  <span className="text-sm">Add attachment</span>
+                </button>
+              )}
             </div>
 
             <Button 

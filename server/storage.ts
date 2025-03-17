@@ -3,7 +3,7 @@ import { type Transaction, type InsertTransaction } from "@shared/schema";
 export interface IStorage {
   getTransactions(): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  getBalance(): Promise<{ balance: number; income: number; expenses: number }>;
+  getBalance(): Promise<{ balance: number; expenses: number }>;
 }
 
 export class MemStorage implements IStorage {
@@ -31,21 +31,15 @@ export class MemStorage implements IStorage {
     return transaction;
   }
 
-  async getBalance(): Promise<{ balance: number; income: number; expenses: number }> {
-    let income = 0;
+  async getBalance(): Promise<{ balance: number; expenses: number }> {
     let expenses = 0;
 
     for (const transaction of this.transactions.values()) {
-      if (transaction.type === "income") {
-        income += Number(transaction.amount);
-      } else {
-        expenses += Number(transaction.amount);
-      }
+      expenses += Number(transaction.amount);
     }
 
     return {
-      balance: income - expenses,
-      income,
+      balance: -expenses,
       expenses,
     };
   }
